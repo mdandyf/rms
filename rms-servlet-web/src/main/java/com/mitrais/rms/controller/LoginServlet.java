@@ -22,6 +22,7 @@ public class LoginServlet extends AbstractController
 {
     private String path;
     private LoginService loginService = LoginService.getInstance();
+    private int timeout = 10;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
@@ -35,28 +36,23 @@ public class LoginServlet extends AbstractController
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
     {
         resp.setContentType("text/html");
-
         Map<String, String> requestParams = new HashMap<>();
         requestParams.put("buttonLogin", req.getParameter("buttonLogin"));
         requestParams.put("username", req.getParameter("username"));
         requestParams.put("userpass", req.getParameter("userpass"));
-        PrintWriter out = resp.getWriter();
         if(loginService.doCheck(requestParams)) {
             HttpSession session = req.getSession(true);
             session.setAttribute("username", req.getParameter("username"));
-            session.setMaxInactiveInterval(30); // 30 seconds
+            session.setMaxInactiveInterval(timeout); // 30 seconds
             setPath("users/list");
             resp.sendRedirect(getPath());
         } else {
             // Make a form alert
-            out.println("<script type=\"text/javascript\">");
-            out.println("alert('User or password incorrect');");
-            out.println("location='index.jsp';");
-            out.println("</script>");
-            RequestDispatcher requestDispatcher = req.getRequestDispatcher(getPath());
+            PrintWriter out = resp.getWriter();
+            out.print("<script>alert('Username or Password is wrong')</script>");
+            RequestDispatcher requestDispatcher = req.getRequestDispatcher(getTemplatePath(req.getServletPath()));
             requestDispatcher.include(req, resp);
         }
-
 
     }
 
