@@ -19,6 +19,7 @@
 </head>
 
 <body>
+<% String message = (String)request.getAttribute("alertMsg");%>
 <div class="mdl-layout mdl-js-layout mdl-color--grey-100">
 	<main class="mdl-layout__content">
 		<div class="mdl-card mdl-shadow--6dp">

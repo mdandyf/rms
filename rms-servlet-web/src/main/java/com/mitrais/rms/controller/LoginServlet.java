@@ -40,7 +40,7 @@ public class LoginServlet extends AbstractController
         requestParams.put("buttonLogin", req.getParameter("buttonLogin"));
         requestParams.put("username", req.getParameter("username"));
         requestParams.put("userpass", req.getParameter("userpass"));
-
+        PrintWriter out = resp.getWriter();
         if(loginService.doCheck(requestParams)) {
             HttpSession session = req.getSession(true);
             session.setAttribute("username", req.getParameter("username"));
@@ -49,8 +49,12 @@ public class LoginServlet extends AbstractController
             resp.sendRedirect(getPath());
         } else {
             // Make a form alert
+            out.println("<script type=\"text/javascript\">");
+            out.println("alert('User or password incorrect');");
+            out.println("location='index.jsp';");
+            out.println("</script>");
             RequestDispatcher requestDispatcher = req.getRequestDispatcher(getPath());
-            requestDispatcher.forward(req, resp);
+            requestDispatcher.include(req, resp);
         }
 
 

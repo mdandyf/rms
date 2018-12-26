@@ -13,21 +13,18 @@ public class LoginService implements Service<Map<String, String>,Integer> {
 
     @Override
     public boolean doCheck(Map<String, String> strings) {
-        boolean loginState = false;
-        String buttonLogin = strings.get("buttonLogin");
-
-        if(buttonLogin != null) {
+        if(strings.get("buttonLogin") != null) {
             String userName = strings.get("username");
             String userPass = strings.get("userpass");
             if((userName != null) && (userPass != null)) {
                 Optional<User> user = userDao.findByUserName(userName);
                 if((user.isPresent()) && (user.get().getPassword().equals(userPass))) {
-                    loginState = true;
+                    return true;
                 }
             }
         }
 
-        return loginState;
+        return false;
     }
 
     @Override
