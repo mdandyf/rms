@@ -7,6 +7,7 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
@@ -31,6 +32,18 @@ public class UserServlet extends AbstractController
     }
 
     private void doOperation(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+        HttpSession session = req.getSession();
+
+        try {
+            // check if there is still a session for current user
+            Optional.of((String) session.getAttribute("username"));
+        } catch (NullPointerException e) {
+            // session has been expired, redirect to login page
+            session.invalidate();
+            resp.sendRedirect("/login");
+            return;
+        }
 
         String action, pathInfo = "";
         if(req.getPathInfo().contains("users")) {

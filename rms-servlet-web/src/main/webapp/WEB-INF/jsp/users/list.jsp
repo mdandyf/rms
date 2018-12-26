@@ -22,7 +22,7 @@
 
 <body>
 <div class="mdl-card__actions mdl-card--border">
-    <a href="/login" style="text-align: right">Logout</a>
+    <a href="/logout" style="text-align: right">Logout</a>
 </div>
 <div class="mdl-layout mdl-js-layout mdl-color--grey-100 box-center">
     <main class="mdl-layout__content">

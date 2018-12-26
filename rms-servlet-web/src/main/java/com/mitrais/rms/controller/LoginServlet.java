@@ -22,7 +22,7 @@ public class LoginServlet extends AbstractController
 {
     private String path;
     private LoginService loginService = LoginService.getInstance();
-    private int timeout = 10;
+    private int timeout = 30;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
