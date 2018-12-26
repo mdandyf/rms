@@ -3,6 +3,7 @@ package com.mitrais.rms.controller;
 import com.mitrais.rms.dao.UserDao;
 import com.mitrais.rms.dao.impl.UserDaoImpl;
 import com.mitrais.rms.model.User;
+import com.mitrais.rms.service.LoginService;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -12,13 +13,15 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @WebServlet("/login")
 public class LoginServlet extends AbstractController
 {
     private String path;
-    private static UserDao userDao = UserDaoImpl.getInstance();
+    private LoginService loginService = LoginService.getInstance();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
@@ -32,36 +35,25 @@ public class LoginServlet extends AbstractController
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
     {
         resp.setContentType("text/html");
-        PrintWriter out = resp.getWriter();
-        if(doOperation(req)) {
+
+        Map<String, String> requestParams = new HashMap<>();
+        requestParams.put("buttonLogin", req.getParameter("buttonLogin"));
+        requestParams.put("username", req.getParameter("username"));
+        requestParams.put("userpass", req.getParameter("userpass"));
+
+        if(loginService.doCheck(requestParams)) {
             HttpSession session = req.getSession(true);
             session.setAttribute("username", req.getParameter("username"));
             session.setMaxInactiveInterval(30); // 30 seconds
             setPath("users/list");
             resp.sendRedirect(getPath());
         } else {
-            out.println("<font color=red>Either user name or password is wrong.</font>");
+            // Make a form alert
             RequestDispatcher requestDispatcher = req.getRequestDispatcher(getPath());
             requestDispatcher.forward(req, resp);
         }
 
 
-    }
-
-    private boolean doOperation(HttpServletRequest req) {
-        boolean loginState = false;
-        if(req.getParameter("buttonLogin") != null) {
-            String userName = req.getParameter("username");
-            String userPass = req.getParameter("userpass");
-            if((userName != null) && (userPass != null)) {
-                Optional<User> user = userDao.findByUserName(userName);
-                if((user.isPresent()) && (user.get().getPassword().equals(userPass))) {
-                   loginState = true;
-                }
-            }
-        }
-
-       return loginState;
     }
 
     public String getPath() {

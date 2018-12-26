@@ -1,5 +1,6 @@
 package com.mitrais.rms.dao;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,19 +28,19 @@ public interface Dao<T, ID>
      * @param o record
      * @return true if operation success
      */
-    boolean save(T o);
+    boolean save(T o) throws SQLException;
 
     /**
      * Persist existing record to database
      * @param o record
      * @return true if operation success
      */
-    boolean update(T o);
+    boolean update(T o) throws SQLException;
 
     /**
      * Remove existing record from database
      * @param o record
      * @return true if operaion success
      */
-    boolean delete(T o);
+    boolean delete(T o) throws SQLException;
 }

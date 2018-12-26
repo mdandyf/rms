@@ -62,8 +62,7 @@ public class UserDaoImpl implements UserDao
     }
 
     @Override
-    public boolean save(User user)
-    {
+    public boolean save(User user) throws SQLException {
         try (Connection connection = DataSourceFactory.getConnection())
         {
             PreparedStatement stmt = connection.prepareStatement("INSERT INTO user VALUES (NULL, ?, ?)");
@@ -76,14 +75,13 @@ public class UserDaoImpl implements UserDao
         }
         catch (SQLException ex)
         {
-            ex.printStackTrace();
+            throw new SQLException();
         }
         return false;
     }
 
     @Override
-    public boolean update(User user)
-    {
+    public boolean update(User user) throws SQLException {
         try (Connection connection = DataSourceFactory.getConnection())
         {
             PreparedStatement stmt = connection.prepareStatement("UPDATE user SET user_name=?, password=? WHERE id=?");
@@ -97,14 +95,13 @@ public class UserDaoImpl implements UserDao
         }
         catch (SQLException ex)
         {
-            ex.printStackTrace();
+            throw new SQLException();
         }
         return false;
     }
 
     @Override
-    public boolean delete(User user)
-    {
+    public boolean delete(User user) throws SQLException {
         try (Connection connection = DataSourceFactory.getConnection())
         {
             PreparedStatement stmt = connection.prepareStatement("DELETE FROM user WHERE id=?");
@@ -116,7 +113,7 @@ public class UserDaoImpl implements UserDao
         }
         catch (SQLException ex)
         {
-            ex.printStackTrace();
+            throw new SQLException();
         }
         return false;
     }

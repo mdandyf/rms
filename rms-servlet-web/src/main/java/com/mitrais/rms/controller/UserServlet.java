@@ -1,8 +1,6 @@
 package com.mitrais.rms.controller;
 
-import com.mitrais.rms.dao.UserDao;
-import com.mitrais.rms.dao.impl.UserDaoImpl;
-import com.mitrais.rms.model.User;
+import com.mitrais.rms.service.UserService;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -11,28 +9,24 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @WebServlet("/users/*")
 public class UserServlet extends AbstractController
 {
-
-    private static UserDao userDao = UserDaoImpl.getInstance();
+    private UserService userService = UserService.getInstance();
     private String path;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
     {
-       doOperation(req, resp);
+        doOperation(req, resp);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
     {
-       doGet(req, resp);
+        doGet(req, resp);
     }
 
     private void doOperation(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -46,15 +40,25 @@ public class UserServlet extends AbstractController
         action = req.getServletPath() + pathInfo;
 
         try {
+
+            String id = req.getParameter("userid");
+
             if("/users/new".equalsIgnoreCase(action)) {
                 showNewForm(req, resp);
             } else if("/users/delete".equalsIgnoreCase(action)) {
-                delete(req, resp);
+                if(!id.equals(null) && !id.equals("")) {
+                    delete(req, resp);
+                } else {
+                    throw new ServletException();
+                }
             } else if("/users/edit".equalsIgnoreCase(action)) {
-                showEditForm(req, resp) ;
+                if(!id.equals(null) && !id.equals("")) {
+                    showEditForm(req, resp) ;
+                } else {
+                    throw new ServletException();
+                }
             } else if("/users/data".equalsIgnoreCase(action)) {
-                String id = req.getParameter("userid");
-                if(id != null && id != "") {
+                if(!id.equals(null) && !id.equals("")) {
                     update(req, resp);
                 } else {
                     insert(req, resp);
@@ -63,15 +67,15 @@ public class UserServlet extends AbstractController
                 list(req, resp);
             }
         } catch (SQLException e) {
-            throw new ServletException(e);
+            e.printStackTrace();
+        } catch (ServletException e) {
+            resp.sendRedirect("src/main/webapp/WEB-INF/html/500 error.html");
         }
 
     }
 
     private void list(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
-        List<User> users = userDao.findAll();
-        req.setAttribute("users", users);
-
+        req.setAttribute("users", userService.findAll());
         setPath(getTemplatePath("/users/list"));
         RequestDispatcher requestDispatcher = req.getRequestDispatcher(getPath());
         requestDispatcher.forward(req, resp);
@@ -85,64 +89,47 @@ public class UserServlet extends AbstractController
     }
 
     private void showEditForm(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
-        String id = req.getParameter("userid");
-        if(id != null && id != "") {
-            Optional<User> user = userDao.find(Long.decode(id));
-            if(user.isPresent()) {
-                setPath(getTemplatePath("/users/form"));
-                RequestDispatcher requestDispatcher = req.getRequestDispatcher(getPath());
-                req.setAttribute("user", user.get());
-                requestDispatcher.forward(req, resp);
-            } else {
-                throw new SQLException();
-            }
+        Map<String, String> map = new HashMap<>();
+        map.put("userid", req.getParameter("userid"));
+
+        if(userService.doCheck(map)) {
+            setPath(getTemplatePath("/users/form"));
+            RequestDispatcher requestDispatcher = req.getRequestDispatcher(getPath());
+            req.setAttribute("user", userService.find(Long.decode(req.getParameter("userid"))).get());
+            requestDispatcher.forward(req, resp);
         } else {
-            throw new ServletException();
+            throw new SQLException();
         }
     }
 
     private void insert(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
-            String userName = req.getParameter("username");
-            String userPass = req.getParameter("userpass");
-
-            List<User> listUser = userDao.findAll().stream().sorted(Comparator.comparing(User::getId)).collect(Collectors.toList());
-            Long newId = listUser.get(0).getId() + 1;
-
-            User user = new User(newId, userName, userPass);
-            userDao.save(user);
+        Map<String, String> map = new HashMap<>();
+        map.put("username", req.getParameter("username"));
+        map.put("userpass", req.getParameter("userpass"));
+        if(userService.doInsert(map)) {
             resp.sendRedirect("/users/list");
+        } else {
+            throw new SQLException();
+        }
     }
 
     private void update(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
-        String id = req.getParameter("userid");
-        if(id != null && id != "") {
-            String userName = req.getParameter("username");
-            String userPass = req.getParameter("userpass");
-            Optional<User> user = userDao.find(Long.decode(id));
-            if(user.isPresent()) {
-                userDao.update(new User(Long.decode(id), userName, userPass));
-                resp.sendRedirect("/users/list");
-            } else {
-                throw new SQLException();
-            }
-
+        Map<String, String> map = new HashMap<>();
+        map.put("userid", req.getParameter("userid"));
+        map.put("username", req.getParameter("username"));
+        map.put("userpass", req.getParameter("userpass"));
+        if(userService.doUpdate(map)) {
+            resp.sendRedirect("/users/list");
         } else {
-            throw new ServletException();
+            throw new SQLException();
         }
     }
 
     private void delete(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
-        String id = req.getParameter("userid");
-        if(id != null && id != "") {
-            Optional<User> user = userDao.find(Long.decode(id));
-            if(user.isPresent()) {
-                userDao.delete(user.get());
-                resp.sendRedirect("/users/list");
-            } else {
-                throw new SQLException();
-            }
+        if(userService.doDelete(Long.decode(req.getParameter("userid")))) {
+            resp.sendRedirect("/users/list");
         } else {
-            throw new ServletException();
+            throw new SQLException();
         }
     }
 
